@@ -100,5 +100,9 @@ function subscribeEmail(){const e=document.getElementById('emailInput').value;if
 function trackOrder(){const id=document.getElementById('trackId').value;if(!id){alert('Enter Order ID');return;}document.getElementById('trackResult').classList.remove('hidden');const rand=Math.floor(Math.random()*3)+1;['s1','s2','s3'].forEach((s,i)=>{const el=document.getElementById(s);if(i<rand){el.className='w-8 h-8 rounded-full bg-gold text-black mx-auto flex items-center justify-center font-bold';}else{el.className='w-8 h-8 rounded-full bg-zinc-700 mx-auto flex items-center justify-center';}});const texts=['Order Paid - Preparing','Order Supplied - Shipped','Order Delivered - Enjoy!'];document.getElementById('trackText').innerText=texts[rand-1]+' | ID: '+id;}
 async function checkoutPi(){if(cart.length===0){alert('Cart empty');return;}const total=cart.reduce((a,b)=>a+b.price,0);const orderId='SOSA-'+Math.floor(1000+Math.random()*9000);if(!Pi){alert('Simulated Pi Payment Success! Order: '+orderId+' Status: Paid');localStorage.setItem('lastOrder',orderId);cart=[];updateCart();closeCart();document.getElementById('trackId').value=orderId;trackOrder();return;}try{await Pi.createPayment({amount:total,memo:'SOSA Outfits',metadata:{orderId:orderId}});alert('Payment success! '+orderId);cart=[];updateCart();closeCart();}catch(e){alert('Payment failed: '+e.message);}}
 </script>
+ <div style="text-align:center;padding:20px;background:#111;margin-top:30px">
+<a href="/privacy.html" style="color:#FFD700;margin:10px">Privacy Policy</a>
+<a href="/terms.html" style="color:#FFD700;margin:10px">Terms of Service</a>
+</div>
 </body>
 </html>
