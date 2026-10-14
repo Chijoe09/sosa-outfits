@@ -42,17 +42,17 @@
 </div>
 
 <script>
-let products = [];
 const productData = [
- {id:1, name:"Custom Leather Sneakers", cat:"Shoes", price:0.05},
- {id:2, name:"Designer Tote Bag", cat:"Bags", price:0.03},
- {id:3, name:"Luxury Street Shirt", cat:"Shirts", price:0.01},
- {id:4, name:"Gold Buckle Belt", cat:"Belts", price:0.01},
- {id:5, name:"Suede Face Cap", cat:"Face Cap", price:0.01},
- {id:6, name:"Slim Fit Denim", cat:"Jeans", price:0.02},
- {id:7, name:"Full Street Fit", cat:"Complete", price:0.05},
- {id:8, name:"Suede Chelsea Boots", cat:"Shoes", price:0.04},
+{id:1,name:"Custom Leather Sneakers",cat:"Shoes",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"},
+{id:2,name:"Designer Tote Bag",cat:"Bags",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400"},
+{id:3,name:"Luxury Street Shirt",cat:"Shirts",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=400"},
+{id:4,name:"Gold Buckle Belt",cat:"Belts",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400"},
+{id:5,name:"Suede Face Cap",cat:"Face Caps",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400"},
+{id:6,name:"Slim Fit Denim",cat:"Jeans",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=400"},
+{id:7,name:"Full Street Fit",cat:"Complete",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=400"},
+{id:8,name:"Suede Chelsea Boots",cat:"Shoes",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400"}
 ];
+let products = [...productData];
 
 let currentCat='all', currentStock='all';
 let cart=[];
