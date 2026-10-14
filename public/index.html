@@ -64,12 +64,7 @@ function renderProducts(){
    const catMatch=currentCat==='all'||p.cat===currentCat;
    return catMatch;
  }).forEach(p=>{
-  grid.innerHTML+=`<div class="bg-zinc-900 p-3 rounded-xl">
-   <div class="h-32 bg-zinc-800 rounded-lg mb-2 flex items-center justify-center text-zinc-600">${p.cat}</div>
-   <div class="text-white font-bold text-sm">${p.name}</div>
-   <div class="text-yellow-400 font-black">${p.price} Pi</div>
-   <button onclick="addToCart(${p.id})" class="w-full mt-2 bg-white text-black text-sm font-bold py-1.5 rounded-full">Add</button>
-  </div>`;
+  grid.innerHTML+='<div class="bg-zinc-900 rounded-xl p-3"><div class="h-32 bg-zinc-800 rounded-lg overflow-hidden mb-2"><img src="'+p.img+'" class="w-full h-full object-cover"></div><div class="text-white font-bold text-sm">'+p.name+'</div><div class="text-xs text-zinc-400 mb-1">'+p.cat+'</div><div class="text-yellow-400 font-black">'+p.price+' Pi</div><button onclick="addToCart('+p.id+')" class="w-full mt-2 bg-white text-black rounded-full py-1.5 text-sm font-bold">Add</button></div>';
  });
 }
 renderProducts();
