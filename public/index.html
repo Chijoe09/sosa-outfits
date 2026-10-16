@@ -103,28 +103,24 @@ async function checkoutPi(){
    const auth = await Pi.authenticate(['username','payments'], onIncompletePaymentFound);
    console.log("Auth success:", auth);
 
-   const paymentData = {
-     amount: total,
-     memo: "SOSA Outfits - "+cart.length+" items",
-     metadata: {cart: cart}
-   };
-
-   const callbacks = {
-     onReadyForServerApproval: function(paymentId){
-       console.log("Ready for approval:", paymentId);
-       fetch('/api/pi/approve', {method:'POST', body: JSON.stringify({paymentId})});
-     },
-     onReadyForServerCompletion: function(paymentId, txid){
-       console.log("Ready for completion:", paymentId, txid);
-       fetch('/api/pi/complete', {method:'POST', body: JSON.stringify({paymentId, txid})})
-       .then(()=>{alert("Payment Successful! Order ID: SOSA-"+paymentId.slice(0,6)); cart=[]; updateCart(); closeCart();});
-     },
-     onCancel: function(paymentId){ alert("Payment cancelled"); },
-     onError: function(error){ alert("Payment failed: "+error); console.error(error); }
-   };
-
-   await Pi.createPayment(paymentData, callbacks);
-
+   const paymentData = { 
+  amount: total, 
+  memo: "SOSA Outfits - "+cart.length+" items", 
+  metadata: {cart: cart} 
+};
+const callbacks = {
+  onReadyForServerApproval: async function(paymentId){
+    await fetch('/api/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId})});
+  },
+  onReadyForServerCompletion: async function(paymentId, txid){
+    await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId, txid})});
+    alert("Payment Success!");
+    cart=[]; updateCart(); closeCart();
+  },
+  onCancel: function(paymentId){ alert("Cancelled"); },
+  onError: function(error){ console.error(error); }
+};
+await Pi.createPayment(paymentData, callbacks);
  } catch(err){
    alert("Auth/Payment error: "+err);
    console.error(err);
