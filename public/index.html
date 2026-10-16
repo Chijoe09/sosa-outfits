@@ -90,7 +90,7 @@ document.getElementById('cartBtn').onclick=()=>{updateCart();}
 
 function onIncompletePaymentFound(payment){
  console.log("Incomplete payment found:", payment);
- return fetch('/api/pi/complete', {
+ return fetch('/api/complete', {
    method:'POST',
    body: JSON.stringify({paymentId: payment.identifier})
  });
