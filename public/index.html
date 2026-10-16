@@ -72,18 +72,48 @@ renderProducts();
 function filterCat(c){currentCat=c; renderProducts();}
 function filterStock(s){currentStock=s; renderProducts();}
 
-function addToCart(id){
- const item=productData.find(p=>p.id===id);
- cart.push(item);
- updateCart();
+// === PART 1: CART BRAIN - SAFE TO REPLACE ===
+let cart = [];
+function addToCart(id) {
+  const item = productData.find(p=>p.id==id);
+  if(item) {
+    cart.push(item);
+    updateCartUI();
+  }
+}
 }
 
-function updateCart(){
- document.getElementById('cartBtn').innerHTML=`🛒 <span id="cartCount">${cart.length}</span>`;
- const total=cart.reduce((a,b)=>a+b.price,0);
- document.getElementById('totalPi').innerText=`Total: ${total.toFixed(3)} Pi`;
- document.getElementById('cartItems').innerHTML=cart.map(c=>`<div class="flex justify-between text-sm py-1"><span>${c.name}</span><span class="text-yellow-400">${c.price} Pi</span></div>`).join('');
- document.getElementById('cartModal').classList.remove('hidden');
+function updateCartUI() {
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const totalEl = document.getElementById('cart-total');
+  const countEl = document.getElementById('cart-count');
+  const listEl = document.getElementById('cart-items');
+
+  if(totalEl) totalEl.innerText = `Total: ${total.toFixed(3)} Pi`;
+  if(countEl) countEl.innerText = cart.length;
+  if(listEl) {
+    listEl.innerHTML = cart.map((c,i) => 
+      `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee">
+         <span>${c.name}</span><span>${c.price} Pi</span>
+       </div>`
+    ).join('');
+  }
+}
+
+function getCartTotal() {
+  return cart.reduce((sum, item) => sum + item.price, 0);
+}
+
+// This is your new Pay button logic - it CALLS your old checkoutPi
+async function payNow() {
+  const total = getCartTotal();
+  if(total === 0) {
+    alert("Cart is empty - add items first");
+    return;
+  }
+  // Call your existing payment function you already fixed
+  // It will now receive correct amount
+  checkoutPi(total, cart);
 }
 function closeCart(){document.getElementById('cartModal').classList.add('hidden');}
 document.getElementById('cartBtn').onclick=()=>{updateCart();}
