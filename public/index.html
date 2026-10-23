@@ -13,7 +13,7 @@
 <body class="bg-black text-white">
 <header class="p-4 flex justify-between items-center">
 <div class="font-black text-xl">SOSA<span class="text-yellow-400">.pi</span></div>
-<div id="cartBtn" class="bg-zinc-900 px-4 py-2 rounded-full">🛒 <span id="cartCount">0</span></div>
+<div id="cartBtn" class="bg-zinc-900 px-4 py-2 rounded-full cursor-pointer">🛒 <span id="cartCount">0</span></div>
 </header>
 <section class="p-2 text-center">
 <h1 class="text-zinc-400 max-w-xl mx-auto">HEAD-TO-TOE LUXURY</h1>
@@ -28,7 +28,7 @@
 </div>
 </section>
 <section id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-3"></section>
-<div id="cartModal" class="fixed inset-0 bg-black/80 hidden">
+<div id="cartModal" class="fixed inset-0 bg-black/80 hidden z-50">
 <div class="bg-zinc-900 max-w-md mx-auto mt-10 p-4 rounded-xl">
 <div class="flex justify-between"><h2 class="font-bold">Your Cart</h2><button onclick="closeCart()">X</button></div>
 <div id="cartItems" class="mt-3"></div>
@@ -38,10 +38,10 @@
 </div>
 <script>
  const productData = [{id:1,name:"Custom Leather Sneakers",cat:"Shoes",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"},{id:2,name:"Designer Tote Bag",cat:"Bags",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400"},{id:3,name:"Luxury Street Shirt",cat:"Shirts",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"},{id:4,name:"Gold Buckle Belt",cat:"Belts",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400"},{id:5,name:"Suede Face Cap",cat:"Face Cap",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400"},{id:6,name:"Slim Fit Denim",cat:"Jeans",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=400"},{id:7,name:"Full Street Fit",cat:"Complete",price:0.15,stock:"Trending",img:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400"},{id:8,name:"Suede Chelsea Boots",cat:"Shoes",price:0.08,stock:"New Arrival",img:"https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400"}];
-let products = [...productData];
 let currentCat='all';
 let currentStock='all';
 let cart=[];
+
 function renderProducts(){
   const grid=document.getElementById('products');
   if(!grid) return;
@@ -56,27 +56,76 @@ function renderProducts(){
   });
 }
 function filterCat(c){currentCat=c; renderProducts();}
-function filterStock(s){currentStock=s; renderProducts();}
+
 renderProducts();
+
+// --- FIXED CART LOGIC (CLAUDE + UNIQUE KEY) ---
 function addToCart(id){
   const item=productData.find(p=>p.id===id);
-  if(item){cart.push(item); updateCartUI();}
+  if(!item) return;
+  // default size/color for now, later you can pass size/color from product page
+  const size = "M";
+  const color = "Default";
+  const uniqueKey = `${item.id}-${size}-${color}`;
+  
+  const existing = cart.find(c => c.uniqueKey === uniqueKey);
+  if(existing){
+    existing.qty += 1;
+  } else {
+    cart.push({...item, size, color, uniqueKey, qty:1});
+  }
+  updateCartUI();
 }
+
+function removeItem(uniqueKey){
+  cart = cart.filter(c => c.uniqueKey !== uniqueKey);
+  updateCartUI();
+}
+
+function updateQty(uniqueKey, newQty){
+  if(newQty <= 0){ removeItem(uniqueKey); return; }
+  const it = cart.find(c => c.uniqueKey === uniqueKey);
+  if(it) it.qty = newQty;
+  updateCartUI();
+}
+
 function updateCartUI(){
-  const total=cart.reduce((sum,item)=>sum+item.price,0);
+  const total=cart.reduce((sum,item)=>sum+(item.price*item.qty),0);
+  const count=cart.reduce((sum,item)=>sum+item.qty,0);
   const countEl=document.getElementById('cartCount');
   const itemsEl=document.getElementById('cartItems');
   const totalPiEl=document.getElementById('totalPi');
-  if(countEl) countEl.innerText=cart.length;
+  if(countEl) countEl.innerText=count;
   if(totalPiEl) totalPiEl.innerText='Total: '+total.toFixed(3)+' Pi';
   if(itemsEl){
-    itemsEl.innerHTML=cart.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #333"><span>${c.name}</span><span>${c.price} Pi</span></div>`).join('');
+    if(cart.length===0){
+      itemsEl.innerHTML=`<p class="text-zinc-500 text-sm py-4">Cart empty</p>`;
+    } else {
+      itemsEl.innerHTML=cart.map(c=>`
+        <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #333">
+          <img src="${c.img}" style="width:40px;height:40px;object-fit:cover;border-radius:6px"/>
+          <div style="flex:1">
+            <div style="font-size:13px">${c.name}</div>
+            <div style="font-size:11px;color:#999">${c.size} / ${c.color}</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+              <button onclick="updateQty('${c.uniqueKey}', ${c.qty-1})" style="border:1px solid #444;width:22px;height:22px;border-radius:4px">-</button>
+              <span style="font-size:12px;width:16px;text-align:center">${c.qty}</span>
+              <button onclick="updateQty('${c.uniqueKey}', ${c.qty+1})" style="border:1px solid #444;width:22px;height:22px;border-radius:4px">+</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;color:#facc15">${(c.price*c.qty).toFixed(3)} Pi</div>
+            <button onclick="removeItem('${c.uniqueKey}')" style="font-size:12px;color:#ff5555;margin-top:4px">X Remove</button>
+          </div>
+        </div>`).join('');
+    }
   }
 }
 function updateCart(){ updateCartUI(); document.getElementById('cartModal').classList.remove('hidden'); }
-function getCartTotal(){ return cart.reduce((sum,item)=>sum+item.price,0); }
+function getCartTotal(){ return cart.reduce((sum,item)=>sum+(item.price*item.qty),0); }
 function closeCart(){document.getElementById('cartModal').classList.add('hidden');}
 document.getElementById('cartBtn').onclick=()=>{updateCart();}
+
 function onIncompletePaymentFound(payment){
  return fetch('/api/complete', {method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({paymentId: payment.identifier})});
 }
