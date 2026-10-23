@@ -11,25 +11,24 @@
 <style>body{font-family:'Outfit',sans-serif}</style>
 </head>
 <body class="bg-black text-white">
-<header class="p-4 flex justify-between items-center">
+<header class="p-4 flex justify-between items-center sticky top-0 bg-black z-20">
 <div class="font-black text-xl">SOSA<span class="text-yellow-400">.pi</span></div>
 <div id="cartBtn" class="bg-zinc-900 px-4 py-2 rounded-full cursor-pointer">🛒 <span id="cartCount">0</span></div>
 </header>
-<section class="p-2 text-center">
-<h1 class="text-zinc-400 max-w-xl mx-auto">HEAD-TO-TOE LUXURY</h1>
-<div class="flex flex-wrap gap-2 justify-center mt-3">
-<button onclick="filterCat('all')" class="bg-white text-black px-3 py-1 rounded-full">All</button>
-<button onclick="filterCat('Shoes')" class="bg-zinc-800 px-3 py-1 rounded-full">Shoes</button>
-<button onclick="filterCat('Bags')" class="bg-zinc-800 px-3 py-1 rounded-full">Bags</button>
-<button onclick="filterCat('Jeans')" class="bg-zinc-800 px-3 py-1 rounded-full">Jeans</button>
-<button onclick="filterCat('Shirts')" class="bg-zinc-800 px-3 py-1 rounded-full">Shirts</button>
-<button onclick="filterCat('Belts')" class="bg-zinc-800 px-3 py-1 rounded-full">Belts</button>
-<button onclick="filterCat('Face Cap')" class="bg-zinc-800 px-3 py-1 rounded-full">Face Cap</button>
+<section class="p-3">
+<input id="searchInput" oninput="searchProducts()" placeholder="Search outfits..." class="w-full bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-full text-sm outline-none">
+<div class="flex flex-wrap gap-2 justify-center mt-3" id="filterBar">
+<button onclick="filterCat('all')" id="cat-all" class="catBtn bg-white text-black px-3 py-1 rounded-full text-sm">All</button>
+<button onclick="filterCat('Shoes')" id="cat-Shoes" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Shoes</button>
+<button onclick="filterCat('Bags')" id="cat-Bags" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Bags</button>
+<button onclick="filterCat('Jeans')" id="cat-Jeans" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Jeans</button>
+<button onclick="filterCat('Shirts')" id="cat-Shirts" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Shirts</button>
+<button onclick="filterCat('Belts')" id="cat-Belts" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Belts</button>
+<button onclick="filterCat('Face Cap')" id="cat-Face Cap" class="catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm">Face Cap</button>
 </div>
 </section>
 <section id="products" class="grid grid-cols-2 md:grid-cols-4 gap-3 p-3"></section>
 
-<!-- PRODUCT DETAIL MODAL -->
 <div id="productModal" class="fixed inset-0 bg-black/80 hidden z-[60]">
 <div class="bg-zinc-900 max-w-md mx-auto mt-20 p-4 rounded-xl">
 <div class="flex justify-between"><h2 id="modalName" class="font-bold"></h2><button onclick="closeProductModal()">X</button></div>
@@ -53,42 +52,53 @@
 </div>
 </div>
 
-<!-- CART MODAL -->
-<div id="cartModal" class="fixed inset-0 bg-black/80 hidden z-50">
+<div id="cartModal" class="fixed inset-0 bg-black/80 hidden z-50 overflow-auto">
 <div class="bg-zinc-900 max-w-md mx-auto mt-10 p-4 rounded-xl">
-<div class="flex justify-between"><h2 class="font-bold">Your Cart</h2><button onclick="closeCart()">X</button></div>
+<div class="flex justify-between items-center"><h2 class="font-bold">Your Cart</h2><div class="flex gap-3"><button onclick="clearCart()" class="text-xs text-red-400">Clear All</button><button onclick="closeCart()">X</button></div></div>
 <div id="cartItems" class="mt-3"></div>
 <div id="totalPi" class="mt-3 font-bold text-yellow-400"></div>
-<button onclick="checkoutPi()" class="w-full bg-yellow-400 text-black font-black py-3 mt-3 rounded-full">Pay with Pi</button>
+<button onclick="openCheckoutForm()" class="w-full bg-yellow-400 text-black font-black py-3 mt-3 rounded-full">Proceed to Checkout</button>
+</div>
+</div>
+
+<div id="checkoutModal" class="fixed inset-0 bg-black/90 hidden z-[70] overflow-auto">
+<div class="bg-zinc-900 max-w-md mx-auto mt-10 p-4 rounded-xl">
+<div class="flex justify-between"><h2 class="font-bold">Delivery Details</h2><button onclick="closeCheckoutForm()">X</button></div>
+<input id="custName" placeholder="Full Name" class="w-full bg-zinc-800 px-3 py-2 rounded mt-3 text-sm">
+<input id="custPhone" placeholder="Phone / WhatsApp" class="w-full bg-zinc-800 px-3 py-2 rounded mt-2 text-sm">
+<textarea id="custAddress" placeholder="Delivery Address" class="w-full bg-zinc-800 px-3 py-2 rounded mt-2 text-sm"></textarea>
+<div id="checkoutSummary" class="mt-3 text-xs text-zinc-400"></div>
+<button onclick="checkoutPi()" class="w-full bg-yellow-400 text-black font-black py-3 mt-4 rounded-full">Pay with Pi</button>
 </div>
 </div>
 
 <script>
  const productData = [{id:1,name:"Custom Leather Sneakers",cat:"Shoes",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400"},{id:2,name:"Designer Tote Bag",cat:"Bags",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400"},{id:3,name:"Luxury Street Shirt",cat:"Shirts",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400"},{id:4,name:"Gold Buckle Belt",cat:"Belts",price:0.05,stock:"Trending",img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400"},{id:5,name:"Suede Face Cap",cat:"Face Cap",price:0.05,stock:"New Arrival",img:"https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400"},{id:6,name:"Slim Fit Denim",cat:"Jeans",price:0.05,stock:"In Stock",img:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=400"},{id:7,name:"Full Street Fit",cat:"Complete",price:0.15,stock:"Trending",img:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400"},{id:8,name:"Suede Chelsea Boots",cat:"Shoes",price:0.08,stock:"New Arrival",img:"https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400"}];
-let currentCat='all';
-let currentStock='all';
+let currentCat='all'; let searchQ='';
 let cart=JSON.parse(localStorage.getItem('sosa_cart')||'[]');
-let selectedProduct=null;
-let selectedSize='M';
-let selectedColor='Black';
+let selectedProduct=null; let selectedSize='M'; let selectedColor='Black';
 
 function renderProducts(){
-  const grid=document.getElementById('products');
-  if(!grid) return;
-  grid.innerHTML='';
+  const grid=document.getElementById('products'); if(!grid) return; grid.innerHTML='';
   let filtered=productData.filter(p=>{
     const catMatch=currentCat==='all'||p.cat===currentCat;
-    const stockMatch=currentStock==='all'||p.stock===currentStock;
-    return catMatch&&stockMatch;
+    const searchMatch=p.name.toLowerCase().includes(searchQ.toLowerCase());
+    return catMatch&&searchMatch;
   });
+  if(filtered.length===0){ grid.innerHTML='<p class="col-span-2 text-center text-zinc-500 py-10">No products found</p>'; return; }
   filtered.forEach(p=>{
     grid.innerHTML+=`<div class="bg-zinc-900 p-3 rounded cursor-pointer"><img onclick="openProductModal(${p.id})" src="${p.img}" class="w-full h-40 object-cover rounded"><h3 class="text-white text-sm mt-2">${p.name}</h3><p class="text-yellow-400 text-xs">${p.price} Pi • ${p.stock}</p><button onclick="openProductModal(${p.id})" class="mt-2 w-full bg-yellow-400 text-black py-1 rounded text-xs">Select Options</button></div>`;
   });
 }
-function filterCat(c){currentCat=c; renderProducts();}
+function filterCat(c){
+  currentCat=c;
+  document.querySelectorAll('.catBtn').forEach(b=>{b.className='catBtn bg-zinc-800 px-3 py-1 rounded-full text-sm'});
+  document.getElementById('cat-'+c).className='catBtn bg-white text-black px-3 py-1 rounded-full text-sm';
+  renderProducts();
+}
+function searchProducts(){ searchQ=document.getElementById('searchInput').value; renderProducts(); }
 function saveCart(){localStorage.setItem('sosa_cart', JSON.stringify(cart));}
-renderProducts();
-updateCartUI();
+renderProducts(); updateCartUI();
 
 function openProductModal(id){
   selectedProduct=productData.find(p=>p.id===id);
@@ -100,16 +110,8 @@ function openProductModal(id){
   setSize('M'); setColor('Black');
 }
 function closeProductModal(){document.getElementById('productModal').classList.add('hidden');}
-function setSize(s){
-  selectedSize=s;
-  document.querySelectorAll('.sizeBtn').forEach(b=>{b.className='sizeBtn bg-zinc-800 px-3 py-1 rounded'});
-  document.getElementById('size-'+s).className='sizeBtn bg-white text-black px-3 py-1 rounded';
-}
-function setColor(c){
-  selectedColor=c;
-  document.querySelectorAll('.colorBtn').forEach(b=>{b.className='colorBtn bg-zinc-800 px-3 py-1 rounded'});
-  document.getElementById('color-'+c).className='colorBtn bg-white text-black px-3 py-1 rounded';
-}
+function setSize(s){ selectedSize=s; document.querySelectorAll('.sizeBtn').forEach(b=>{b.className='sizeBtn bg-zinc-800 px-3 py-1 rounded'}); document.getElementById('size-'+s).className='sizeBtn bg-white text-black px-3 py-1 rounded'; }
+function setColor(c){ selectedColor=c; document.querySelectorAll('.colorBtn').forEach(b=>{b.className='colorBtn bg-zinc-800 px-3 py-1 rounded'}); document.getElementById('color-'+c).className='colorBtn bg-white text-black px-3 py-1 rounded'; }
 function confirmAddToCart(){
   if(!selectedProduct) return;
   const uniqueKey = `${selectedProduct.id}-${selectedSize}-${selectedColor}`;
@@ -117,17 +119,15 @@ function confirmAddToCart(){
   if(existing){ existing.qty+=1; } else { cart.push({...selectedProduct, size:selectedSize, color:selectedColor, uniqueKey, qty:1}); }
   saveCart(); updateCartUI(); closeProductModal();
 }
-
 function removeItem(uniqueKey){ cart = cart.filter(c => c.uniqueKey !== uniqueKey); saveCart(); updateCartUI(); }
 function updateQty(uniqueKey, newQty){ if(newQty<=0){ removeItem(uniqueKey); return; } const it = cart.find(c=>c.uniqueKey===uniqueKey); if(it) it.qty=newQty; saveCart(); updateCartUI(); }
+function clearCart(){ if(confirm("Clear cart?")){ cart=[]; saveCart(); updateCartUI(); } }
 function updateCartUI(){
   const total=cart.reduce((sum,item)=>sum+(item.price*item.qty),0);
   const count=cart.reduce((sum,item)=>sum+item.qty,0);
-  const countEl=document.getElementById('cartCount');
-  const itemsEl=document.getElementById('cartItems');
-  const totalPiEl=document.getElementById('totalPi');
-  if(countEl) countEl.innerText=count;
-  if(totalPiEl) totalPiEl.innerText='Total: '+total.toFixed(3)+' Pi';
+  document.getElementById('cartCount').innerText=count;
+  const itemsEl=document.getElementById('cartItems'); const totalPiEl=document.getElementById('totalPi');
+  if(totalPiEl) totalPiEl.innerText='Total: '+total.toFixed(3)+' Pi ('+count+' items)';
   if(itemsEl){
     if(cart.length===0){ itemsEl.innerHTML=`<p class="text-zinc-500 text-sm py-4">Cart empty</p>`; }
     else { itemsEl.innerHTML=cart.map(c=>`<div style="display:flex;gap:10px;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #333"><img src="${c.img}" style="width:40px;height:40px;object-fit:cover;border-radius:6px"/><div style="flex:1"><div style="font-size:13px">${c.name}</div><div style="font-size:11px;color:#999">${c.size} / ${c.color}</div><div style="display:flex;gap:6px;align-items:center;margin-top:4px"><button onclick="updateQty('${c.uniqueKey}', ${c.qty-1})" style="border:1px solid #444;width:22px;height:22px;border-radius:4px">-</button><span style="font-size:12px;width:16px;text-align:center">${c.qty}</span><button onclick="updateQty('${c.uniqueKey}', ${c.qty+1})" style="border:1px solid #444;width:22px;height:22px;border-radius:4px">+</button></div></div><div style="text-align:right"><div style="font-size:13px;color:#facc15">${(c.price*c.qty).toFixed(3)} Pi</div><button onclick="removeItem('${c.uniqueKey}')" style="font-size:12px;color:#ff5555;margin-top:4px">X Remove</button></div></div>`).join(''); }
@@ -136,17 +136,29 @@ function updateCartUI(){
 function updateCart(){ updateCartUI(); document.getElementById('cartModal').classList.remove('hidden'); }
 function getCartTotal(){ return cart.reduce((sum,item)=>sum+(item.price*item.qty),0); }
 function closeCart(){document.getElementById('cartModal').classList.add('hidden');}
+function openCheckoutForm(){
+  if(cart.length===0){alert("Cart empty"); return;}
+  const total=getCartTotal();
+  document.getElementById('checkoutSummary').innerText=`${cart.length} unique items, Total ${total.toFixed(3)} Pi`;
+  document.getElementById('cartModal').classList.add('hidden');
+  document.getElementById('checkoutModal').classList.remove('hidden');
+}
+function closeCheckoutForm(){document.getElementById('checkoutModal').classList.add('hidden');}
 document.getElementById('cartBtn').onclick=()=>{updateCart();}
 function onIncompletePaymentFound(payment){ return fetch('/api/complete', {method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({paymentId: payment.identifier})}); }
 async function checkoutPi(){
+ const name=document.getElementById('custName').value.trim();
+ const phone=document.getElementById('custPhone').value.trim();
+ const addr=document.getElementById('custAddress').value.trim();
+ if(!name||!phone||!addr){alert("Fill Name, Phone, Address"); return;}
  if(cart.length===0){alert("Cart empty"); return;}
  const total=getCartTotal();
  try{
    const auth = await Pi.authenticate(['username','payments'], onIncompletePaymentFound);
-   const paymentData = { amount: total, memo: "SOSA Outfits - "+cart.length+" items", metadata: {cart: cart} };
+   const paymentData = { amount: total, memo: `SOSA - ${name}`, metadata: {cart: cart, customer:{name, phone, addr}} };
    const callbacks = {
     onReadyForServerApproval: async function(paymentId){ await fetch('/api/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId})}); },
-    onReadyForServerCompletion: async function(paymentId, txid){ await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId, txid})}); alert("Payment Success!"); cart=[]; saveCart(); updateCartUI(); closeCart(); },
+    onReadyForServerCompletion: async function(paymentId, txid){ await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentId, txid})}); alert("Payment Success! Order for "+name); cart=[]; saveCart(); updateCartUI(); closeCheckoutForm(); },
     onCancel: function(paymentId){ alert("Cancelled"); },
     onError: function(error){ console.error(error); alert("Payment error"); }
    };
