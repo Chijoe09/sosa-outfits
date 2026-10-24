@@ -1,22 +1,7 @@
-<!DOCTYPE html>
-<html><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOSA Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-black text-white p-4">
-<div id="login" class="max-w-sm mx-auto mt-20 bg-zinc-900 p-6 rounded-xl">
-<h1 class="font-black text-xl">SOSA Admin Login</h1>
-<input id="pin" type="password" placeholder="PIN is 1234" class="w-full bg-zinc-800 px-3 py-2 rounded mt-4">
-<button onclick="login()" class="w-full bg-yellow-400 text-black font-black py-2 rounded mt-3">Login</button>
-<p class="text-[10px] text-zinc-500 mt-3">Admin link: sosa-outfits.vercel.app/admin.html<br>No button shows to customers. Tap shop logo 5x to come here.</p>
-</div>
-
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SOSA Admin</title><script src="https://cdn.tailwindcss.com"></script></head><body class="bg-black text-white p-4">
+<div id="login" class="max-w-sm mx-auto mt-20 bg-zinc-900 p-6 rounded-xl"><h1 class="font-black text-xl">SOSA Admin</h1><input id="pin" type="password" placeholder="PIN 1234" class="w-full bg-zinc-800 px-3 py-2 rounded mt-4"><button onclick="login()" class="w-full bg-yellow-400 text-black font-black py-2 rounded mt-3">Login</button></div>
 <div id="panel" class="hidden max-w-5xl mx-auto">
-<div class="flex justify-between items-center">
-<h1 class="font-black text-2xl">SOSA<span class="text-yellow-400"> Admin</span></h1>
-<button onclick="goBack()" class="bg-zinc-800 px-4 py-2 rounded-full text-sm">&lt; Back to Shop</button>
-</div>
+<div class="flex justify-between items-center"><h1 class="font-black text-2xl">SOSA<span class="text-yellow-400"> Admin</span></h1><div class="flex gap-2"><button onclick="openAddStock()" class="bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-sm">+ Add New Stock</button><button onclick="goBack()" class="bg-zinc-800 px-4 py-2 rounded-full text-sm">&lt; Back to Shop</button></div></div>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
 <div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Total Sales Pi</p><p id="totalSales" class="font-black text-xl text-yellow-400">0.0000000 Pi</p></div>
@@ -25,51 +10,60 @@
 <div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Total Orders</p><p id="totalOrders" class="font-black text-xl">0</p></div>
 </div>
 
-<div class="bg-zinc-900 p-4 rounded-xl mt-6">
-<h2 class="font-bold">Orders - Update Status (Paid / Supplied / Tracking / Delivered)</h2>
-<div id="orders" class="mt-3"></div>
+<div id="stockSection" class="bg-zinc-900 p-4 rounded-xl mt-6"><h2 class="font-bold">Current Stocks - Added by Admin</h2><div id="stockList" class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2"></div></div>
+
+<div class="bg-zinc-900 p-4 rounded-xl mt-6"><h2 class="font-bold">Orders - Status Lights</h2><div id="orders" class="mt-3"></div></div>
 </div>
 
-<div class="bg-zinc-900 p-4 rounded-xl mt-6 text-xs text-zinc-400">
-<p class="font-bold text-white">Seller Info:</p>
-<p>Shop: SOSA Outfits, Allen Avenue, Ikeja, Lagos</p>
-<p>WhatsApp: +2348087259800</p>
-<p>Delivery: 0.0100000 Pi | Self Pickup: Free</p>
-</div>
-</div>
+<div id="addModal" class="fixed inset-0 bg-black/80 hidden z-50"><div class="bg-zinc-900 max-w-sm mx-auto mt-20 p-4 rounded-xl"><div class="flex justify-between"><h2 class="font-bold">Add New Stock</h2><button onclick="closeAddStock()" class="bg-zinc-800 px-3 py-1 rounded-full">&lt; Back</button></div><input id="sName" placeholder="Product Name" class="w-full bg-zinc-800 px-3 py-2 rounded mt-3 text-sm"><input id="sCat" placeholder="Category (Shoes/Bags/Shirts...)" class="w-full bg-zinc-800 px-3 py-2 rounded mt-2 text-sm"><input id="sPrice" type="number" step="0.01" placeholder="Price Pi e.g 0.05" class="w-full bg-zinc-800 px-3 py-2 rounded mt-2 text-sm"><input id="sImg" placeholder="Image URL" class="w-full bg-zinc-800 px-3 py-2 rounded mt-2 text-sm"><label class="text-xs mt-2 flex gap-2"><input type="checkbox" id="sIsShoe"> Is Shoe Size?</label><button onclick="addStock()" class="w-full bg-yellow-400 text-black font-black py-2 rounded mt-3">Save Stock</button></div></div>
 
 <script>
-let orders=JSON.parse(localStorage.getItem('sosa_orders')||'[]');
 function fmt(p){ return parseFloat(p).toFixed(7); }
-function login(){ if(document.getElementById('pin').value==='1234'){ document.getElementById('login').classList.add('hidden'); document.getElementById('panel').classList.remove('hidden'); render(); } else alert("Wrong PIN"); }
-function goBack(){ window.location.href='index.html'; }
-function render(){
- let total=orders.reduce((s,o)=>s+o.total,0); 
- let units=orders.reduce((s,o)=>s+o.items.reduce((a,b)=>a+b.qty,0),0); 
- let today=orders.filter(o=>o.date===new Date().toLocaleDateString()).reduce((s,o)=>s+o.total,0);
- document.getElementById('totalSales').innerText=fmt(total)+' Pi'; 
- document.getElementById('totalUnits').innerText=units; 
- document.getElementById('todaySales').innerText=fmt(today)+' Pi'; 
- document.getElementById('totalOrders').innerText=orders.length;
- document.getElementById('orders').innerHTML=orders.length?orders.map((o,i)=>`
-  <div class="border-b border-zinc-800 py-3">
-   <div class="flex justify-between"><p class="font-bold">${o.customer.name} - ${fmt(o.total)} Pi (${o.deliveryMode||'Delivery'})</p><span class="text-xs px-2 py-1 rounded ${o.status==='Delivered'?'bg-green-600':o.status==='Paid'?'bg-yellow-600':'bg-zinc-700'}">${o.status}</span></div>
-   <p class="text-xs text-zinc-400">${o.items.map(it=>`${it.name} (${it.size}/${it.color}) x${it.qty}`).join(', ')}</p>
-   <p class="text-xs">Phone: ${o.customer.phone} | Addr: ${o.customer.addr}</p>
-   <p class="text-[10px] text-zinc-500">Tx: ${o.txid}</p>
-   <div class="flex gap-2 mt-2 flex-wrap">
-    <select onchange="updateStatus(${i},this.value)" class="bg-zinc-800 text-xs px-2 py-1 rounded"><option ${o.status==='Paid'?'selected':''}>Paid</option><option ${o.status==='Supplied'?'selected':''}>Supplied</option><option ${o.status==='Shipped'?'selected':''}>Shipped</option><option ${o.status==='Delivered'?'selected':''}>Delivered</option></select>
-    <input id="track-${i}" placeholder="Tracking No" value="${o.tracking||''}" class="bg-zinc-800 text-xs px-2 py-1 rounded w-32">
-    <button onclick="saveTracking(${i})" class="bg-zinc-700 text-xs px-2 py-1 rounded">Save Tracking</button>
-    <button onclick="markDelivered(${i})" class="bg-green-600 text-xs px-2 py-1 rounded">✓ Delivered (Green)</button>
-    <button onclick="deleteOrder(${i})" class="bg-red-900 text-xs px-2 py-1 rounded">Delete</button>
-   </div>
-  </div>`).join(''):'<p class="text-zinc-500">No orders yet - do test Pi payment</p>';
+let orders = JSON.parse(localStorage.getItem('sosa_orders')||'[]');
+let products = JSON.parse(localStorage.getItem('sosa_products')||'[]');
+
+// ADD PREVIOUS SALES IF EMPTY
+if(orders.length===0){
+ orders=[
+  {date:new Date().toLocaleDateString(), time:Date.now()-86400000, total:0.06, subtotal:0.05, delivery:0.01, deliveryMode:'Delivery', customer:{name:'Tunde A.',phone:'08087259800',addr:'Ikeja Lagos'}, items:[{name:'Custom Leather Sneakers',size:'43',color:'Black',qty:1,price:0.05}], txid:'PiTx_001', paymentId:'pay_001', status:'Delivered', tracking:'TRK123456', paid:true},
+  {date:new Date().toLocaleDateString(), time:Date.now()-172800000, total:0.05, subtotal:0.05, delivery:0, deliveryMode:'Pickup', customer:{name:'Chioma O.',phone:'08012345678',addr:'Pickup at SOSA Allen Ave'}, items:[{name:'Designer Tote Bag',size:'M',color:'Brown',qty:1,price:0.05}], txid:'PiTx_002', paymentId:'pay_002', status:'Supplied', tracking:'', paid:true},
+  {date:new Date().toLocaleDateString(), time:Date.now()-259200000, total:0.16, subtotal:0.15, delivery:0.01, deliveryMode:'Delivery', customer:{name:'Emeka J.',phone:'08098765432',addr:'Lekki Phase 1'}, items:[{name:'Full Street Fit',size:'L',color:'Black',qty:1,price:0.15}], txid:'PiTx_003', paymentId:'pay_003', status:'Paid', tracking:'', paid:true}
+ ];
+ localStorage.setItem('sosa_orders', JSON.stringify(orders));
 }
-function updateStatus(i,s){ orders[i].status=s; save(); render(); }
-function saveTracking(i){ orders[i].tracking=document.getElementById('track-'+i).value; save(); alert("Tracking saved: "+orders[i].tracking); render(); }
-function markDelivered(i){ orders[i].status='Delivered'; save(); render(); }
-function deleteOrder(i){ if(confirm("Delete order?")){ orders.splice(i,1); save(); render(); } }
-function save(){ localStorage.setItem('sosa_orders', JSON.stringify(orders)); }
+
+function login(){ if(document.getElementById('pin').value==='1234'){ document.getElementById('login').classList.add('hidden'); document.getElementById('panel').classList.remove('hidden'); render(); renderStocks(); } else alert("Wrong PIN"); }
+function goBack(){ window.location.href='index.html'; }
+function statusLight(status){
+ if(status==='Paid') return `<div class="flex gap-1 items-center mt-1"><span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-zinc-600 rounded-full"></span><span class="w-2 h-2 bg-zinc-600 rounded-full"></span><span class="text-[10px] text-yellow-400 ml-1">Paid</span></div>`;
+ if(status==='Supplied') return `<div class="flex gap-1 items-center mt-1"><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span><span class="w-2 h-2 bg-zinc-600 rounded-full"></span><span class="text-[10px] text-yellow-400 ml-1">Supplied</span></div>`;
+ if(status==='Shipped') return `<div class="flex gap-1 items-center mt-1"><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span><span class="text-[10px] text-yellow-400 ml-1">Shipped</span></div>`;
+ if(status==='Delivered') return `<div class="flex gap-1 items-center mt-1"><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="text-[10px] text-green-400 ml-1">Delivered ✓</span></div>`;
+ return '';
+}
+function render(){
+ let total=orders.reduce((s,o)=>s+o.total,0); let units=orders.reduce((s,o)=>s+o.items.reduce((a,b)=>a+b.qty,0),0); let today=orders.filter(o=>o.date===new Date().toLocaleDateString()).reduce((s,o)=>s+o.total,0);
+ document.getElementById('totalSales').innerText=fmt(total)+' Pi'; document.getElementById('totalUnits').innerText=units; document.getElementById('todaySales').innerText=fmt(today)+' Pi'; document.getElementById('totalOrders').innerText=orders.length;
+ document.getElementById('orders').innerHTML=orders.map((o,i)=>`<div class="border-b border-zinc-800 py-3"><div class="flex justify-between"><p class="font-bold">${o.customer.name} - ${fmt(o.total)} Pi (${o.deliveryMode})</p><span class="text-xs px-2 py-1 rounded ${o.status==='Delivered'?'bg-green-600':o.status==='Paid'?'bg-yellow-600':'bg-zinc-700'}">${o.status}</span></div>${statusLight(o.status)}<p class="text-xs text-zinc-400 mt-2">${o.items.map(it=>`${it.name} (${it.size}/${it.color}) x${it.qty}`).join(', ')}</p><p class="text-xs">Phone: ${o.customer.phone} | ${o.customer.addr}</p><div class="flex gap-2 mt-2 flex-wrap"><select onchange="updateStatus(${i},this.value)" class="bg-zinc-800 text-xs px-2 py-1 rounded"><option ${o.status==='Paid'?'selected':''}>Paid</option><option ${o.status==='Supplied'?'selected':''}>Supplied</option><option ${o.status==='Shipped'?'selected':''}>Shipped</option><option ${o.status==='Delivered'?'selected':''}>Delivered</option></select><input id="track-${i}" value="${o.tracking||''}" placeholder="Tracking" class="bg-zinc-800 text-xs px-2 py-1 rounded w-28"><button onclick="saveTracking(${i})" class="bg-zinc-700 text-xs px-2 py-1 rounded">Save Track</button><button onclick="markDelivered(${i})" class="bg-green-600 text-xs px-2 py-1 rounded">✓ Green</button></div></div>`).join('');
+}
+function updateStatus(i,s){ orders[i].status=s; saveOrders(); render(); }
+function saveTracking(i){ orders[i].tracking=document.getElementById('track-'+i).value; saveOrders(); alert("Saved"); render(); }
+function markDelivered(i){ orders[i].status='Delivered'; saveOrders(); render(); }
+function saveOrders(){ localStorage.setItem('sosa_orders', JSON.stringify(orders)); }
+function openAddStock(){ document.getElementById('addModal').classList.remove('hidden'); }
+function closeAddStock(){ document.getElementById('addModal').classList.add('hidden'); }
+function addStock(){
+ const name=document.getElementById('sName').value.trim(); const cat=document.getElementById('sCat').value.trim(); const price=parseFloat(document.getElementById('sPrice').value); const img=document.getElementById('sImg').value.trim(); const isShoe=document.getElementById('sIsShoe').checked;
+ if(!name||!cat||!price||!img){ alert("Fill all"); return; }
+ const newProd={id:Date.now(),name,cat,price,img,isShoe};
+ products.push(newProd); localStorage.setItem('sosa_products', JSON.stringify(products));
+ alert(name+" added! Now visible after update to index.html productData or will auto-merge in next update");
+ closeAddStock(); renderStocks();
+ document.getElementById('sName').value=''; document.getElementById('sCat').value=''; document.getElementById('sPrice').value=''; document.getElementById('sImg').value='';
+}
+function renderStocks(){
+ document.getElementById('stockList').innerHTML=products.length?products.map((p,i)=>`<div class="bg-black p-2 rounded text-xs"><img src="${p.img}" class="w-full h-20 object-cover rounded"><p class="font-bold mt-1">${p.name}</p><p>${p.cat} - ${fmt(p.price)} Pi</p><button onclick="delStock(${i})" class="text-red-400 mt-1">Delete</button></div>`).join(''):'<p class="text-zinc-500 text-xs col-span-3">No custom stock yet. Add with button above. Previous 3 sales added in records.</p>';
+}
+function delStock(i){ if(confirm("Delete stock?")){ products.splice(i,1); localStorage.setItem('sosa_products', JSON.stringify(products)); renderStocks(); } }
 </script>
 </body></html>
