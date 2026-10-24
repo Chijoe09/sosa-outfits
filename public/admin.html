@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOSA Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-4">
+<div id="login" class="max-w-sm mx-auto mt-20 bg-zinc-900 p-6 rounded-xl">
+<h1 class="font-black text-xl">SOSA Admin Login</h1>
+<input id="pin" type="password" placeholder="PIN is 1234" class="w-full bg-zinc-800 px-3 py-2 rounded mt-4">
+<button onclick="login()" class="w-full bg-yellow-400 text-black font-black py-2 rounded mt-3">Login</button>
+<p class="text-[10px] text-zinc-500 mt-3">Admin link: sosa-outfits.vercel.app/admin.html<br>No button shows to customers. Tap shop logo 5x to come here.</p>
+</div>
+
+<div id="panel" class="hidden max-w-5xl mx-auto">
+<div class="flex justify-between items-center">
+<h1 class="font-black text-2xl">SOSA<span class="text-yellow-400"> Admin</span></h1>
+<button onclick="goBack()" class="bg-zinc-800 px-4 py-2 rounded-full text-sm">&lt; Back to Shop</button>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+<div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Total Sales Pi</p><p id="totalSales" class="font-black text-xl text-yellow-400">0.0000000 Pi</p></div>
+<div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Total Units Sold</p><p id="totalUnits" class="font-black text-xl">0</p></div>
+<div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Today Sales Pi</p><p id="todaySales" class="font-black text-xl text-green-400">0.0000000 Pi</p></div>
+<div class="bg-zinc-900 p-4 rounded-xl"><p class="text-zinc-400 text-xs">Total Orders</p><p id="totalOrders" class="font-black text-xl">0</p></div>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded-xl mt-6">
+<h2 class="font-bold">Orders - Update Status (Paid / Supplied / Tracking / Delivered)</h2>
+<div id="orders" class="mt-3"></div>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded-xl mt-6 text-xs text-zinc-400">
+<p class="font-bold text-white">Seller Info:</p>
+<p>Shop: SOSA Outfits, Allen Avenue, Ikeja, Lagos</p>
+<p>WhatsApp: +2348087259800</p>
+<p>Delivery: 0.0100000 Pi | Self Pickup: Free</p>
+</div>
+</div>
+
+<script>
+let orders=JSON.parse(localStorage.getItem('sosa_orders')||'[]');
+function fmt(p){ return parseFloat(p).toFixed(7); }
+function login(){ if(document.getElementById('pin').value==='1234'){ document.getElementById('login').classList.add('hidden'); document.getElementById('panel').classList.remove('hidden'); render(); } else alert("Wrong PIN"); }
+function goBack(){ window.location.href='index.html'; }
+function render(){
+ let total=orders.reduce((s,o)=>s+o.total,0); 
+ let units=orders.reduce((s,o)=>s+o.items.reduce((a,b)=>a+b.qty,0),0); 
+ let today=orders.filter(o=>o.date===new Date().toLocaleDateString()).reduce((s,o)=>s+o.total,0);
+ document.getElementById('totalSales').innerText=fmt(total)+' Pi'; 
+ document.getElementById('totalUnits').innerText=units; 
+ document.getElementById('todaySales').innerText=fmt(today)+' Pi'; 
+ document.getElementById('totalOrders').innerText=orders.length;
+ document.getElementById('orders').innerHTML=orders.length?orders.map((o,i)=>`
+  <div class="border-b border-zinc-800 py-3">
+   <div class="flex justify-between"><p class="font-bold">${o.customer.name} - ${fmt(o.total)} Pi (${o.deliveryMode||'Delivery'})</p><span class="text-xs px-2 py-1 rounded ${o.status==='Delivered'?'bg-green-600':o.status==='Paid'?'bg-yellow-600':'bg-zinc-700'}">${o.status}</span></div>
+   <p class="text-xs text-zinc-400">${o.items.map(it=>`${it.name} (${it.size}/${it.color}) x${it.qty}`).join(', ')}</p>
+   <p class="text-xs">Phone: ${o.customer.phone} | Addr: ${o.customer.addr}</p>
+   <p class="text-[10px] text-zinc-500">Tx: ${o.txid}</p>
+   <div class="flex gap-2 mt-2 flex-wrap">
+    <select onchange="updateStatus(${i},this.value)" class="bg-zinc-800 text-xs px-2 py-1 rounded"><option ${o.status==='Paid'?'selected':''}>Paid</option><option ${o.status==='Supplied'?'selected':''}>Supplied</option><option ${o.status==='Shipped'?'selected':''}>Shipped</option><option ${o.status==='Delivered'?'selected':''}>Delivered</option></select>
+    <input id="track-${i}" placeholder="Tracking No" value="${o.tracking||''}" class="bg-zinc-800 text-xs px-2 py-1 rounded w-32">
+    <button onclick="saveTracking(${i})" class="bg-zinc-700 text-xs px-2 py-1 rounded">Save Tracking</button>
+    <button onclick="markDelivered(${i})" class="bg-green-600 text-xs px-2 py-1 rounded">✓ Delivered (Green)</button>
+    <button onclick="deleteOrder(${i})" class="bg-red-900 text-xs px-2 py-1 rounded">Delete</button>
+   </div>
+  </div>`).join(''):'<p class="text-zinc-500">No orders yet - do test Pi payment</p>';
+}
+function updateStatus(i,s){ orders[i].status=s; save(); render(); }
+function saveTracking(i){ orders[i].tracking=document.getElementById('track-'+i).value; save(); alert("Tracking saved: "+orders[i].tracking); render(); }
+function markDelivered(i){ orders[i].status='Delivered'; save(); render(); }
+function deleteOrder(i){ if(confirm("Delete order?")){ orders.splice(i,1); save(); render(); } }
+function save(){ localStorage.setItem('sosa_orders', JSON.stringify(orders)); }
+</script>
+</body></html>
